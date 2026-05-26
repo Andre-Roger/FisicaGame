@@ -5,67 +5,62 @@
     <style>
         body { background: #222; color: #fff; font-family: sans-serif; text-align: center; }
         canvas { background: #000; border: 2px solid #555; display: block; margin: 20px auto; }
- 
+
     </style>
 </head>
 <body>
     <h2>Simulador Prático de MRUV</h2>
     <p>O bloco começa parado e vai ganhando velocidade devido à aceleração constante.</p>
-   
+    
     <canvas id="cenario" width="800" height="200"></canvas>
     <button onclick="reiniciar()">Reiniciar Simulação</button>
-   
-    <img src="" alt="imagem do andré">
-    <img src="" alt="imagem do eduardo">
- 
+
     <script>
         const canvas = document.getElementById("cenario");
         const ctx = canvas.getContext("2d");
- 
-   
-        let posicaoX = 10;    
+
+    
+        let posicaoX = 10;     
         let velocidadeX = 0;    
         let aceleracaoX = 0.1;  
- 
+
         function atualizarSimulacao() {
             // Se o bloco ainda não chegou ao fim da tela
             if (posicaoX < canvas.width - 40) {
                 // REGRA DO MRUV NA PRÁTICA:
-                velocidadeX += aceleracaoX;
-                posicaoX += velocidadeX;  
+                velocidadeX += aceleracaoX; 
+                posicaoX += velocidadeX;   
             }
- 
-           
+
+            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
- 
-           
+
+            
             ctx.fillStyle = "#333";
             ctx.fillRect(0, 140, canvas.width, 5);
- 
-           
+
+            
             ctx.fillStyle = "red";
             ctx.fillRect(posicaoX, 100, 40, 40);
- 
-           
+
+            
             ctx.fillStyle = "white";
             ctx.font = "16px sans-serif";
             ctx.fillText(`Posição: ${Math.round(posicaoX)} px`, 20, 30);
             ctx.fillText(`Velocidade: ${velocidadeX.toFixed(2)} px/quadro`, 20, 55);
             ctx.fillText(`Aceleração: ${aceleracaoX} px/quadro²`, 20, 80);
- 
-           
+
+            
             requestAnimationFrame(atualizarSimulacao);
         }
- 
+
         function reiniciar() {
             posicaoX = 10;
             velocidadeX = 0;
         }
- 
+
        
         atualizarSimulacao();
     </script>
 </body>
 </html>
- 
- 
