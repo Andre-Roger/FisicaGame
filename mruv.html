@@ -2,69 +2,129 @@
 <html>
 <head>
     <title>Simulador Prático de MRUV</title>
-    
-        <link rel="stylesheet" href="mruv.css">
+    <link rel="stylesheet" href="mruv.css">
 </head>
 <body>
     <h2>Simulador Prático de MRUV</h2>
     <p>O bloco começa parado e vai ganhando velocidade devido à aceleração constante.</p>
 
-    
     <canvas id="cenario" width="800" height="200"></canvas>
-    <button onclick="reiniciar()">Reiniciar Simulação</button>
-    
 
+    <div>
+        <label for="aceleracao">Aceleração:</label>
+        <input type="number" id="aceleracao" value="1" step="0.1">
 
-    <label>Digite um número:</label>
-    <input type="number" id = "numero">
+        <label for="obstaculos">Obstáculos (1, 2 ou 5):</label>
+        <input type="number" id="obstaculos" value="1" min="1" max="5" step="1">
 
+        <button id="aplicar">Aplicar</button>
+        <button onclick="reiniciar()">Reiniciar Simulação</button>
+    </div>
 
-    
     <script>
         const canvas = document.getElementById("cenario");
         const ctx = canvas.getContext("2d");
+        const inputAceleracao = document.getElementById("aceleracao");
+        const inputObstaculos = document.getElementById("obstaculos");
+        const botaoAplicar = document.getElementById("aplicar");
 
-    
-        let posicaoX = 10;     
-        let velocidadeX = 0;    
-    
+        const img = new Image();
+        img.src = "./IMG/imagem.jpg"; // imagem do bloco
+
+        const imgObstaculo = new Image();
+        imgObstaculo.src = "./IMG/FotoAndre.pnj - copia.jpeg"; // imagem dos obstáculos
+
+        let posicaoX = 10;
+        let velocidadeX = 0;
+        let aceleracaoX = Number(inputAceleracao.value) || 0;
+        let obstaculos = [];
+        let imagemCarregada = false;
+        let imagemObstaculoCarregada = false;
+        const larguraCarro = 40;
+        const alturaCarro = 40;
+
+        function criarObstaculos(qtd) {
+            const quantidade = [1, 2, 5].includes(qtd) ? qtd : 1;
+            obstaculos = [];
+            for (let i = 0; i < quantidade; i++) {
+                obstaculos.push({
+                    x: 300 + i * 120,
+                    y: 120,
+                    largura: 40,
+                    altura: 40,
+                    colidido: false
+                });
+            }
+        }
+
+        function reiniciar() {
+            posicaoX = 10;
+            velocidadeX = 0;
+            aceleracaoX = Number(inputAceleracao.value) || 0;
+            criarObstaculos(Number(inputObstaculos.value));
+        }
+
+        function aplicar() {
+            reiniciar();
+        }
+
+        function verificarColisao(obstaculo) {
+            return posicaoX < obstaculo.x + obstaculo.largura &&
+                   posicaoX + larguraCarro > obstaculo.x &&
+                   100 < obstaculo.y + obstaculo.altura &&
+                   100 + alturaCarro > obstaculo.y;
+        }
+
         function atualizarSimulacao() {
-        
-            if (posicaoX < canvas.width - 40) {
-             
-                posicaoX += velocidadeX / 60;  
+            velocidadeX += aceleracaoX / 60;
+            posicaoX += velocidadeX / 60;
+
+            obstaculos.forEach(obstaculo => {
+                if (!obstaculo.colidido && verificarColisao(obstaculo)) {
+                    velocidadeX *= 0.5;
+                    obstaculo.colidido = true;
+                }
+            });
+
+            if (posicaoX > canvas.width - larguraCarro) {
+                posicaoX = canvas.width - larguraCarro;
+                velocidadeX = 0;
             }
 
-            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            
             ctx.fillStyle = "#333";
             ctx.fillRect(0, 140, canvas.width, 5);
 
-            
-            ctx.fillStyle = "red";
-            ctx.fillRect(posicaoX, 100, 40, 40);
+            obstaculos.forEach(obstaculo => {
+                if (imagemObstaculoCarregada) {
+                    ctx.drawImage(imgObstaculo, obstaculo.x, obstaculo.y, obstaculo.largura, obstaculo.altura);
+                } else {
+                    ctx.fillStyle = "#800";
+                    ctx.fillRect(obstaculo.x, obstaculo.y, obstaculo.largura, obstaculo.altura);
+                }
+            });
 
-            
+            if (imagemCarregada) {
+                ctx.drawImage(img, posicaoX, 100, larguraCarro, alturaCarro);
+            } else {
+                ctx.fillStyle = "red";
+                ctx.fillRect(posicaoX, 100, larguraCarro, alturaCarro);
+            }
+
             ctx.fillStyle = "white";
             ctx.font = "16px sans-serif";
             ctx.fillText(`Posição: ${Math.round(posicaoX)} px`, 20, 30);
             ctx.fillText(`Velocidade: ${velocidadeX.toFixed(2)} px/quadro`, 20, 55);
-            ctx.fillText(`Aceleração: ${aceleracaoX} px/quadro²`, 20, 80);
+            ctx.fillText(`Aceleração: ${aceleracaoX.toFixed(2)} px/quadro²`, 20, 80);
 
-            
             requestAnimationFrame(atualizarSimulacao);
         }
 
-        function reiniciar() {
-
-        aceleracaoX = Number(document.getElementById("numero").value);
-
-        posicaoX = 10;
-}
-
-       
+        botaoAplicar.addEventListener("click", aplicar);
+        img.onload = () => { imagemCarregada = true; };
+        imgObstaculo.onload = () => { imagemObstaculoCarregada = true; };
+        reiniciar();
         atualizarSimulacao();
     </script>
 </body>
