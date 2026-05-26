@@ -11,10 +11,16 @@
 <body>
     <h2>Simulador Prático de MRUV</h2>
     <p>O bloco começa parado e vai ganhando velocidade devido à aceleração constante.</p>
-    
-    <canvas id="cenario" width="800" height="200"></canvas>
-    <button onclick="reiniciar()">Reiniciar Simulação</button>
 
+    
+
+    <canvas id="cenario" width="800" height="200"></canvas>
+
+    <label>Digite um número:</label>
+    <input type="number" id = "numero">
+
+    <button onclick="reiniciar()">Reiniciar Simulação</button>
+    
     <script>
         const canvas = document.getElementById("cenario");
         const ctx = canvas.getContext("2d");
@@ -22,14 +28,12 @@
     
         let posicaoX = 10;     
         let velocidadeX = 0;    
-        let aceleracaoX = 0.1;  
-
+    
         function atualizarSimulacao() {
             // Se o bloco ainda não chegou ao fim da tela
             if (posicaoX < canvas.width - 40) {
                 // REGRA DO MRUV NA PRÁTICA:
-                velocidadeX += aceleracaoX; 
-                posicaoX += velocidadeX;   
+                posicaoX += velocidadeX / 60;  
             }
 
             
@@ -55,9 +59,11 @@
         }
 
         function reiniciar() {
-            posicaoX = 10;
-            velocidadeX = 0;
-        }
+
+        aceleracaoX = Number(document.getElementById("numero").value);
+
+        posicaoX = 10;
+}
 
        
         atualizarSimulacao();
