@@ -7,6 +7,8 @@
         canvas { background: #000; border: 2px solid #555; display: block; margin: 20px auto; }
 
     </style>
+    
+
 </head>
 <body>
     <h2>Simulador Prático de MRUV</h2>
@@ -20,53 +22,22 @@
     <input type="number" id = "numero">
 
     <button onclick="reiniciar()">Reiniciar Simulação</button>
-    
-    <script>
-        const canvas = document.getElementById("cenario");
-        const ctx = canvas.getContext("2d");
 
-    
-        let posicaoX = 10;     
-        let velocidadeX = 0;    
-    
-        function atualizarSimulacao() {
-            // Se o bloco ainda não chegou ao fim da tela
-            if (posicaoX < canvas.width - 40) {
-                // REGRA DO MRUV NA PRÁTICA:
-                posicaoX += velocidadeX / 60;  
-            }
+    <label>Quantidade de obstáculos:</label>
 
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    <select id="obstaculos">
 
-            
-            ctx.fillStyle = "#333";
-            ctx.fillRect(0, 140, canvas.width, 5);
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
 
-            
-            ctx.fillStyle = "red";
-            ctx.fillRect(posicaoX, 100, 40, 40);
+    </select>
 
-            
-            ctx.fillStyle = "white";
-            ctx.font = "16px sans-serif";
-            ctx.fillText(`Posição: ${Math.round(posicaoX)} px`, 20, 30);
-            ctx.fillText(`Velocidade: ${velocidadeX.toFixed(2)} px/quadro`, 20, 55);
-            ctx.fillText(`Aceleração: ${aceleracaoX} px/quadro²`, 20, 80);
-
-            
-            requestAnimationFrame(atualizarSimulacao);
-        }
-
-        function reiniciar() {
-
-        aceleracaoX = Number(document.getElementById("numero").value);
-
-        posicaoX = 10;
-}
-
-       
-        atualizarSimulacao();
-    </script>
+    <script src="../FisicaGame/mruv.js"></script>
 </body>
+
+
 </html>
