@@ -8,7 +8,21 @@ const inputObstaculos =
     document.getElementById("obstaculos");
 
 let posicaoX = 10;
-const metrosTotais = 69.56;
+const metrosTotais = 158.33;
+
+
+const imgFundo = new Image();
+
+imgFundo.src = "./IMG/fundinho.jpg";
+
+let fundoCarregado = false;
+
+imgFundo.onload = () => {
+
+    fundoCarregado = true;
+};
+
+
 
 let velocidadeBase = 0;
 let velocidadeX = 0;
@@ -33,7 +47,7 @@ let grafico = null;
 // imagem do carro
 const imgCarro = new Image();
 
-imgCarro.src = "./IMG/imagem.jpg";
+imgCarro.src = "./IMG/Mcquenn.png";
 
 let imagemCarregada = false;
 
@@ -230,15 +244,28 @@ function atualizarSimulacao() {
         canvas.height
     );
 
-    // chão
-    ctx.fillStyle = "#333";
+    // fundo
+    if (fundoCarregado) {
 
-    ctx.fillRect(
-        0,
-        140,
-        canvas.width,
-        5
-    );
+        ctx.drawImage(
+            imgFundo,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+    } else {
+
+        ctx.fillStyle = "black";
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+    }
 
     // obstáculos
     ctx.fillStyle = "blue";
@@ -254,16 +281,16 @@ function atualizarSimulacao() {
             obstaculo.altura
         );
     }
-
+    
     // carro
     if (imagemCarregada) {
 
         ctx.drawImage(
             imgCarro,
             posicaoX,
-            100,
-            40,
-            40
+            92,
+            73,
+            80
         );
 
     } else {
@@ -277,7 +304,25 @@ function atualizarSimulacao() {
             40
         );
     }
+    // fundo
+    ctx.fillStyle = "black";
+    
+    ctx.fillRect(
+        10,
+        10,
+        180,
+        83, 
+    );
+    ctx.strokeStyle = "white";
 
+    ctx.lineWidth = 3;
+
+    ctx.strokeRect(
+        10,
+        10,
+        180,
+        83
+    );
     // textos
     ctx.fillStyle = "white";
 
