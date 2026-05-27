@@ -13,9 +13,11 @@ let velocidadeBase = 0;
 let velocidadeX = 0;
 
 let listaObstaculos = [];
-
+let terminou = false;
 let tempoInicial = 0;
 let tempoDecorrido = 0;
+
+let tempoDesacelerado = 0;
 
 // imagem do carro
 const imgCarro = new Image();
@@ -64,7 +66,16 @@ function verificarColisao(obstaculo) {
 function atualizarSimulacao() {
 
     // velocidade normal
-    velocidadeX = velocidadeBase;
+    if (tempoDesacelerado > 0) {
+
+        velocidadeX = velocidadeBase / 2;
+
+        tempoDesacelerado -= 16;
+
+    } else {
+
+        velocidadeX = velocidadeBase;
+    }
 
     // colisão
     for (let obstaculo of listaObstaculos) {
@@ -77,7 +88,7 @@ function atualizarSimulacao() {
         ) {
 
             // desacelera
-            velocidadeX = velocidadeBase / 2;
+            tempoDesacelerado = 2000;
 
             obstaculo.colidiu = true;
         }
@@ -86,13 +97,19 @@ function atualizarSimulacao() {
     // movimento
     if (posicaoX < canvas.width - 40) {
 
-        posicaoX += (velocidadeX * 3) / 60;
-    }
+    posicaoX += (velocidadeX * 3) / 60;
+
+    } else {
+
+    terminou = true;
+}
 
     // tempo
-    tempoDecorrido =
+    if (!terminou) {
 
-        (performance.now() - tempoInicial) / 1000;
+        tempoDecorrido =
+            (performance.now() - tempoInicial) / 1000;
+    }
 
     // limpa tela
     ctx.clearRect(
@@ -206,3 +223,4 @@ function reiniciar() {
 reiniciar();
 
 atualizarSimulacao();
+
