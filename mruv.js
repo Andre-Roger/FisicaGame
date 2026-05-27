@@ -12,12 +12,16 @@ let posicaoX = 10;
 let velocidadeBase = 0;
 let velocidadeX = 0;
 
+let aceleracao = 0.05;
+
+let velocidadeAlvo = 0;
+
 let listaObstaculos = [];
+
 let terminou = false;
+
 let tempoInicial = 0;
 let tempoDecorrido = 0;
-
-let tempoDesacelerado = 0;
 
 // imagem do carro
 const imgCarro = new Image();
@@ -44,9 +48,7 @@ function criarObstaculos(qtd) {
             y: 110,
 
             largura: 40,
-            altura: 40,
-
-            colidiu: false
+            altura: 40
         });
     }
 }
@@ -65,44 +67,58 @@ function verificarColisao(obstaculo) {
 
 function atualizarSimulacao() {
 
-    // velocidade normal
-    if (tempoDesacelerado > 0) {
+    let emObstaculo = false;
 
-        velocidadeX = velocidadeBase / 2;
+    // verifica obstáculos
+    for (let obstaculo of listaObstaculos) {
 
-        tempoDesacelerado -= 16;
+        if (verificarColisao(obstaculo)) {
+
+            emObstaculo = true;
+        }
+    }
+
+    // velocidade alvo
+    if (emObstaculo) {
+
+        velocidadeAlvo = velocidadeBase / 2;
 
     } else {
 
-        velocidadeX = velocidadeBase;
+        velocidadeAlvo = velocidadeBase;
     }
 
-    // colisão
-    for (let obstaculo of listaObstaculos) {
+    // aceleração gradual
+    if (velocidadeX < velocidadeAlvo) {
 
-        if (
+        velocidadeX += aceleracao;
 
-            verificarColisao(obstaculo) &&
+        if (velocidadeX > velocidadeAlvo) {
 
-            !obstaculo.colidiu
-        ) {
+            velocidadeX = velocidadeAlvo;
+        }
+    }
 
-            // desacelera
-            tempoDesacelerado = 2000;
+    // desaceleração gradual
+    if (velocidadeX > velocidadeAlvo) {
 
-            obstaculo.colidiu = true;
+        velocidadeX -= aceleracao;
+
+        if (velocidadeX < velocidadeAlvo) {
+
+            velocidadeX = velocidadeAlvo;
         }
     }
 
     // movimento
     if (posicaoX < canvas.width - 40) {
 
-    posicaoX += (velocidadeX * 3) / 60;
+        posicaoX += (velocidadeX * 3) / 60;
 
     } else {
 
-    terminou = true;
-}
+        terminou = true;
+    }
 
     // tempo
     if (!terminou) {
@@ -208,6 +224,10 @@ function reiniciar() {
         inputVelocidade.value
     );
 
+    velocidadeAlvo = velocidadeBase;
+
+    velocidadeX = 0;
+
     let qtdObstaculos = Number(
         inputObstaculos.value
     );
@@ -216,6 +236,8 @@ function reiniciar() {
 
     posicaoX = 10;
 
+    terminou = false;
+
     tempoInicial = performance.now();
 }
 
@@ -223,4 +245,3 @@ function reiniciar() {
 reiniciar();
 
 atualizarSimulacao();
-
