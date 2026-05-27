@@ -8,6 +8,7 @@ const inputObstaculos =
     document.getElementById("obstaculos");
 
 let posicaoX = 10;
+const metrosTotais = 69.56;
 
 let velocidadeBase = 0;
 let velocidadeX = 0;
@@ -147,6 +148,9 @@ function atualizarSimulacao() {
         }
     }
 
+    let posicaoMetros =
+    (posicaoX / canvas.width) * metrosTotais; 
+
     // velocidade alvo
     if (emObstaculo) {
 
@@ -281,7 +285,7 @@ function atualizarSimulacao() {
 
     ctx.fillText(
 
-        `Posição: ${Math.round(posicaoX)} px`,
+        `Posição: ${posicaoMetros.toFixed(2)} m`,
 
         20,
         30
