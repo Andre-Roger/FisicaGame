@@ -12,7 +12,7 @@ let posicaoX = 10;
 let velocidadeBase = 0;
 let velocidadeX = 0;
 
-let aceleracao = 0.05;
+let aceleracao = 0;
 
 let velocidadeAlvo = 0;
 
@@ -22,6 +22,9 @@ let terminou = false;
 
 let tempoInicial = 0;
 let tempoDecorrido = 0;
+
+let historicoTempo = [];
+let historicoVelocidade = [];
 
 // imagem do carro
 const imgCarro = new Image();
@@ -89,7 +92,7 @@ function atualizarSimulacao() {
     }
 
     // aceleração gradual
-    if (velocidadeX < velocidadeAlvo) {
+    if (!terminou && velocidadeX < velocidadeAlvo) {
 
         velocidadeX += aceleracao;
 
@@ -100,7 +103,7 @@ function atualizarSimulacao() {
     }
 
     // desaceleração gradual
-    if (velocidadeX > velocidadeAlvo) {
+    if (!terminou && velocidadeX > velocidadeAlvo) {
 
         velocidadeX -= aceleracao;
 
@@ -117,6 +120,10 @@ function atualizarSimulacao() {
 
     } else {
 
+        posicaoX = canvas.width - 40;
+
+        velocidadeX = velocidadeBase;
+
         terminou = true;
     }
 
@@ -126,6 +133,14 @@ function atualizarSimulacao() {
         tempoDecorrido =
             (performance.now() - tempoInicial) / 1000;
     }
+
+    historicoTempo.push(
+        tempoDecorrido.toFixed(2)
+    );
+
+    historicoVelocidade.push(
+        velocidadeX.toFixed(2)
+    );
 
     // limpa tela
     ctx.clearRect(
@@ -223,6 +238,7 @@ function reiniciar() {
     velocidadeBase = Number(
         inputVelocidade.value
     );
+    aceleracao = velocidadeBase / 100;
 
     velocidadeAlvo = velocidadeBase;
 
