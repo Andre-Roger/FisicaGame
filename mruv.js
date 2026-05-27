@@ -12,7 +12,7 @@ let posicaoX = 10;
 let velocidadeBase = 0;
 let velocidadeX = 0;
 
-let aceleracao = 0.05;
+let aceleracao = 0;
 
 let velocidadeAlvo = 0;
 
@@ -22,6 +22,12 @@ let terminou = false;
 
 let tempoInicial = 0;
 let tempoDecorrido = 0;
+
+// histórico do gráfico
+let historicoTempo = [];
+let historicoVelocidade = [];
+
+let grafico = null;
 
 // imagem do carro
 const imgCarro = new Image();
@@ -53,7 +59,7 @@ function criarObstaculos(qtd) {
     }
 }
 
-// verifica colisão
+// colisão
 function verificarColisao(obstaculo) {
 
     return (
@@ -63,6 +69,69 @@ function verificarColisao(obstaculo) {
         posicaoX <
         obstaculo.x + obstaculo.largura
     );
+}
+
+// cria gráfico
+function criarGrafico() {
+
+    const ctxGrafico =
+        document.getElementById("grafico");
+
+    if (grafico) {
+
+        grafico.destroy();
+    }
+
+    grafico = new Chart(ctxGrafico, {
+
+        type: "line",
+
+        data: {
+
+            labels: historicoTempo,
+
+            datasets: [{
+
+                label: "Velocidade (km/h)",
+
+                data: historicoVelocidade,
+
+                borderWidth: 2,
+
+                tension: 0.2
+            }]
+        },
+
+        options: {
+
+            responsive: false,
+
+            animation: false,
+
+            scales: {
+
+                x: {
+
+                    title: {
+
+                        display: true,
+
+                        text: "Tempo (s)"
+                    }
+                },
+
+                y: {
+
+                    title: {
+
+                        display: true,
+
+                        text: "Velocidade (km/h)"
+                    }
+                }
+            }
+        }
+    });
 }
 
 function atualizarSimulacao() {
@@ -88,8 +157,8 @@ function atualizarSimulacao() {
         velocidadeAlvo = velocidadeBase;
     }
 
-    // aceleração gradual
-    if (velocidadeX < velocidadeAlvo) {
+    // aceleração
+    if (!terminou && velocidadeX < velocidadeAlvo) {
 
         velocidadeX += aceleracao;
 
@@ -99,8 +168,8 @@ function atualizarSimulacao() {
         }
     }
 
-    // desaceleração gradual
-    if (velocidadeX > velocidadeAlvo) {
+    // desaceleração
+    if (!terminou && velocidadeX > velocidadeAlvo) {
 
         velocidadeX -= aceleracao;
 
@@ -117,6 +186,10 @@ function atualizarSimulacao() {
 
     } else {
 
+        posicaoX = canvas.width - 40;
+
+        velocidadeX = velocidadeBase;
+
         terminou = true;
     }
 
@@ -126,6 +199,24 @@ function atualizarSimulacao() {
         tempoDecorrido =
             (performance.now() - tempoInicial) / 1000;
     }
+
+    // guarda histórico
+    if (!terminou) {
+
+    historicoTempo.push(
+        tempoDecorrido.toFixed(2)
+    );
+
+    historicoVelocidade.push(
+        velocidadeX.toFixed(2)
+    );
+
+    // atualiza gráfico
+    criarGrafico();
+}
+
+    // atualiza gráfico em tempo real
+    criarGrafico();
 
     // limpa tela
     ctx.clearRect(
@@ -170,7 +261,6 @@ function atualizarSimulacao() {
             40,
             40
         );
-        
 
     } else {
 
@@ -184,7 +274,7 @@ function atualizarSimulacao() {
         );
     }
 
-    
+    // textos
     ctx.fillStyle = "white";
 
     ctx.font = "16px sans-serif";
@@ -218,12 +308,14 @@ function atualizarSimulacao() {
     );
 }
 
-
+// botão
 function reiniciar() {
 
     velocidadeBase = Number(
         inputVelocidade.value
     );
+
+    aceleracao = velocidadeBase / 100;
 
     velocidadeAlvo = velocidadeBase;
 
@@ -240,6 +332,11 @@ function reiniciar() {
     terminou = false;
 
     tempoInicial = performance.now();
+
+    tempoDecorrido = 0;
+
+    historicoTempo = [];
+    historicoVelocidade = [];
 }
 
 // inicia
