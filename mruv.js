@@ -154,6 +154,7 @@ function atualizarSimulacao() {
             40,
             40
         );
+        
 
     } else {
 
@@ -167,7 +168,7 @@ function atualizarSimulacao() {
         );
     }
 
-    // textos
+    
     ctx.fillStyle = "white";
 
     ctx.font = "16px sans-serif";
@@ -201,7 +202,7 @@ function atualizarSimulacao() {
     );
 }
 
-// botão
+
 function reiniciar() {
 
     velocidadeBase = Number(
