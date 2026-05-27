@@ -1,43 +1,65 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Simulador Prático de MRUV</title>
-    <style>
-        body { background: #222; color: #fff; font-family: sans-serif; text-align: center; }
-        canvas { background: #000; border: 2px solid #555; display: block; margin: 20px auto; }
 
-    </style>
-    
+<head>
+
+    <title>Simulador Prático de MRUV</title>
+
+    <link rel="stylesheet" href="mruv.css">
 
 </head>
-<body>
-    <h2>Simulador Prático de MRUV</h2>
-    <p>O bloco começa parado e vai ganhando velocidade devido à aceleração constante.</p>
 
-    
+<body>
+
+    <h2>Simulador Prático de MRUV</h2>
+
+    <p>
+        O bloco começa parado e vai ganhando velocidade
+        devido à aceleração constante.
+    </p>
 
     <canvas id="cenario" width="800" height="200"></canvas>
 
-    <label>Digite um número:</label>
-    <input type="number" id = "numero">
+    <div>
 
-    <button onclick="reiniciar()">Reiniciar Simulação</button>
+        <label for="aceleracao">
+            Aceleração:
+        </label>
 
-    <label>Quantidade de obstáculos:</label>
+        <input
+            type="number"
+            id="aceleracao"
+            value="1"
+            step="0.1"
+        >
 
-    <select id="obstaculos">
+        <label>
+            Quantidade de obstáculos:
+        </label>
 
-        <option value="0">0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
+        <select id="obstaculos">
 
-    </select>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+
+        </select>
+
+        <button id="aplicar">
+            Aplicar
+        </button>
+
+        <button onclick="reiniciar()">
+            Reiniciar Simulação
+        </button>
+
+    </div>
 
     <script src="../FisicaGame/mruv.js"></script>
-</body>
 
+</body>
 
 </html>

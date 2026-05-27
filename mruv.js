@@ -1,12 +1,33 @@
 const canvas = document.getElementById("cenario");
 const ctx = canvas.getContext("2d");
 
+const inputVelocidade =
+    document.getElementById("aceleracao");
+
+const inputObstaculos =
+    document.getElementById("obstaculos");
+
 let posicaoX = 10;
 
 let velocidadeBase = 0;
 let velocidadeX = 0;
 
 let listaObstaculos = [];
+
+let tempoInicial = 0;
+let tempoDecorrido = 0;
+
+// imagem do carro
+const imgCarro = new Image();
+
+imgCarro.src = "./IMG/imagem.jpg";
+
+let imagemCarregada = false;
+
+imgCarro.onload = () => {
+
+    imagemCarregada = true;
+};
 
 // cria obstáculos
 function criarObstaculos(qtd) {
@@ -16,12 +37,28 @@ function criarObstaculos(qtd) {
     for (let i = 0; i < qtd; i++) {
 
         listaObstaculos.push({
-            x: 150 + (i * 120),
+
+            x: 200 + (i * 120),
             y: 110,
-            largura: 30,
-            altura: 30
+
+            largura: 40,
+            altura: 40,
+
+            colidiu: false
         });
     }
+}
+
+// verifica colisão
+function verificarColisao(obstaculo) {
+
+    return (
+
+        posicaoX + 40 > obstaculo.x &&
+
+        posicaoX <
+        obstaculo.x + obstaculo.largura
+    );
 }
 
 function atualizarSimulacao() {
@@ -29,16 +66,20 @@ function atualizarSimulacao() {
     // velocidade normal
     velocidadeX = velocidadeBase;
 
-    // verifica colisão
+    // colisão
     for (let obstaculo of listaObstaculos) {
 
         if (
-            posicaoX + 40 > obstaculo.x &&
-            posicaoX < obstaculo.x + obstaculo.largura
+
+            verificarColisao(obstaculo) &&
+
+            !obstaculo.colidiu
         ) {
 
             // desacelera
             velocidadeX = velocidadeBase / 2;
+
+            obstaculo.colidiu = true;
         }
     }
 
@@ -48,12 +89,28 @@ function atualizarSimulacao() {
         posicaoX += (velocidadeX * 3) / 60;
     }
 
+    // tempo
+    tempoDecorrido =
+
+        (performance.now() - tempoInicial) / 1000;
+
     // limpa tela
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
     // chão
     ctx.fillStyle = "#333";
-    ctx.fillRect(0, 140, canvas.width, 5);
+
+    ctx.fillRect(
+        0,
+        140,
+        canvas.width,
+        5
+    );
 
     // obstáculos
     ctx.fillStyle = "blue";
@@ -61,47 +118,81 @@ function atualizarSimulacao() {
     for (let obstaculo of listaObstaculos) {
 
         ctx.fillRect(
+
             obstaculo.x,
             obstaculo.y,
+
             obstaculo.largura,
             obstaculo.altura
         );
     }
 
-    // bloco
-    ctx.fillStyle = "red";
-    ctx.fillRect(posicaoX, 100, 40, 40);
+    // carro
+    if (imagemCarregada) {
+
+        ctx.drawImage(
+            imgCarro,
+            posicaoX,
+            100,
+            40,
+            40
+        );
+
+    } else {
+
+        ctx.fillStyle = "red";
+
+        ctx.fillRect(
+            posicaoX,
+            100,
+            40,
+            40
+        );
+    }
 
     // textos
     ctx.fillStyle = "white";
+
     ctx.font = "16px sans-serif";
 
     ctx.fillText(
+
         `Posição: ${Math.round(posicaoX)} px`,
+
         20,
         30
     );
 
     ctx.fillText(
-        `Velocidade: ${velocidadeX.toFixed(2)} Km/h`,
+
+        `Velocidade: ${velocidadeX.toFixed(2)} km/h`,
+
         20,
         55
     );
 
-    requestAnimationFrame(atualizarSimulacao);
+    ctx.fillText(
 
-    tempoDecorrido = (performance.now() - tempoInicial) / 1000;
+        `Tempo: ${tempoDecorrido.toFixed(2)} s`,
+
+        20,
+        80
+    );
+
+    requestAnimationFrame(
+        atualizarSimulacao
+    );
 }
 
 // botão
 function reiniciar() {
 
     velocidadeBase = Number(
-        document.getElementById("numero").value
+        inputVelocidade.value
     );
 
     let qtdObstaculos = Number(
-        document.getElementById("obstaculos").value
+        inputObstaculos.value
     );
 
     criarObstaculos(qtdObstaculos);
@@ -111,5 +202,7 @@ function reiniciar() {
     tempoInicial = performance.now();
 }
 
-// inicia animação
+// inicia
+reiniciar();
+
 atualizarSimulacao();
