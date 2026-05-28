@@ -1,394 +1,271 @@
 const canvas = document.getElementById("cenario");
 const ctx = canvas.getContext("2d");
 
-const inputVelocidade =
-    document.getElementById("aceleracao");
+const inputVelocidade = document.getElementById("velocidade");
+const inputAceleracao = document.getElementById("aceleracao");
+const inputObstaculos = document.getElementById("obstaculos");
 
-const inputObstaculos =
-    document.getElementById("obstaculos");
+const metrosTotais   = 158.33;
+const pixelsPorMetro = canvas.width / metrosTotais;
 
-let posicaoX = 10;
-const metrosTotais = 158.33;
+// --- Estado físico ---
+let posicaoMetros    = 0;
+let velocidadeMS     = 0;
+let velocidadeMaxMS  = 0;
+let velocidadeAlvoMS = 0;
+let aceleracaoMS2    = 0;
 
+let velocidadeAoEntrar  = 0;
+let emObstaculoAnterior = false;
 
-const imgFundo = new Image();
+// Guarda a velocidade do último frame antes de terminar
+let velocidadeFinal  = 0;
 
-imgFundo.src = "./IMG/fundinho.jpg";
+let terminou        = false;
+let tempoInicial    = 0;
+let tempoDecorrido  = 0;
+let ultimoTimestamp = null;
 
-let fundoCarregado = false;
-
-imgFundo.onload = () => {
-
-    fundoCarregado = true;
-};
-
-
-
-let velocidadeBase = 0;
-let velocidadeX = 0;
-
-let aceleracao = 0;
-
-let velocidadeAlvo = 0;
-
-let listaObstaculos = [];
-
-let terminou = false;
-
-let tempoInicial = 0;
-let tempoDecorrido = 0;
-
-// histórico do gráfico
-let historicoTempo = [];
+let listaObstaculos     = [];
+let historicoTempo      = [];
 let historicoVelocidade = [];
+let grafico             = null;
 
-let grafico = null;
+// --- Imagem: fundo ---
+const imgFundo = new Image();
+imgFundo.src = "./IMG/fundinho.jpg";
+let fundoCarregado = false;
+imgFundo.onload = () => { fundoCarregado = true; };
 
-// imagem do carro
+// --- Imagem: carro ---
 const imgCarro = new Image();
-
 imgCarro.src = "./IMG/Mcquenn.png";
-
 let imagemCarregada = false;
+imgCarro.onload = () => { imagemCarregada = true; };
 
-imgCarro.onload = () => {
+// --- Imagem: obstáculo intacto ---
+const imgObstaculo = new Image();
+imgObstaculo.src = "./IMG/agua-antes.png";
+let obsCarregada = false;
+imgObstaculo.onload = () => { obsCarregada = true; };
 
-    imagemCarregada = true;
-};
+// --- Imagem: obstáculo após ser passado ---
+const imgObstaculoPassado = new Image();
+imgObstaculoPassado.src = "./IMG/agua-depois.png";
+let obsPassadaCarregada = false;
+imgObstaculoPassado.onload = () => { obsPassadaCarregada = true; };
 
-// cria obstáculos
+// --- Obstáculos ---
 function criarObstaculos(qtd) {
-
     listaObstaculos = [];
-
     for (let i = 0; i < qtd; i++) {
-
         listaObstaculos.push({
-
-            x: 200 + (i * 120),
-            y: 110,
-
-            largura: 40,
-            altura: 40
+            x:       (canvas.width - 100) / (qtd + 1) * (i + 1), // posição em pixels
+            y:       125,
+            largura: 50,
+            altura:  50,
+            passado: false          // controla qual imagem usar
         });
     }
 }
 
-// colisão
-function verificarColisao(obstaculo) {
-
-    return (
-
-        posicaoX + 40 > obstaculo.x &&
-
-        posicaoX <
-        obstaculo.x + obstaculo.largura
-    );
+// Colisão: carro ainda está dentro do obstáculo
+function verificarColisao(obs) {
+    const px = posicaoMetros * pixelsPorMetro;
+    return px + 60 > obs.x && px < obs.x + obs.largura;
 }
 
-// cria gráfico
+// Passou: carro já ultrapassou completamente o obstáculo
+function verificarPassou(obs) {
+    const px = posicaoMetros * pixelsPorMetro;
+    return px > obs.x + obs.largura;
+}
+
+// --- Gráfico ---
 function criarGrafico() {
-
-    const ctxGrafico =
-        document.getElementById("grafico");
-
-    if (grafico) {
-
-        grafico.destroy();
-    }
-
-    grafico = new Chart(ctxGrafico, {
-
+    const ctxG = document.getElementById("grafico");
+    if (grafico) grafico.destroy();
+    grafico = new Chart(ctxG, {
         type: "line",
-
         data: {
-
             labels: historicoTempo,
-
             datasets: [{
-
                 label: "Velocidade (km/h)",
-
                 data: historicoVelocidade,
-
                 borderWidth: 2,
-
                 tension: 0.2
             }]
         },
-
         options: {
-
             responsive: false,
-
             animation: false,
-
             scales: {
-
-                x: {
-
-                    title: {
-
-                        display: true,
-
-                        text: "Tempo (s)"
-                    }
-                },
-
-                y: {
-
-                    title: {
-
-                        display: true,
-
-                        text: "Velocidade (km/h)"
-                    }
-                }
+                x: { title: { display: true, text: "Tempo (s)" } },
+                y: { title: { display: true, text: "Velocidade (km/h)" } }
             }
         }
     });
 }
 
-function atualizarSimulacao() {
-
-    let emObstaculo = false;
-
-    // verifica obstáculos
-    for (let obstaculo of listaObstaculos) {
-
-        if (verificarColisao(obstaculo)) {
-
-            emObstaculo = true;
-        }
-    }
-
-    let posicaoMetros =
-    (posicaoX / canvas.width) * metrosTotais; 
-
-    // velocidade alvo
-    if (emObstaculo) {
-
-        velocidadeAlvo = velocidadeBase / 2;
-
-    } else {
-
-        velocidadeAlvo = velocidadeBase;
-    }
-
-    // aceleração
-    if (!terminou && velocidadeX < velocidadeAlvo) {
-
-        velocidadeX += aceleracao;
-
-        if (velocidadeX > velocidadeAlvo) {
-
-            velocidadeX = velocidadeAlvo;
-        }
-    }
-
-    // desaceleração
-    if (!terminou && velocidadeX > velocidadeAlvo) {
-
-        velocidadeX -= aceleracao;
-
-        if (velocidadeX < velocidadeAlvo) {
-
-            velocidadeX = velocidadeAlvo;
-        }
-    }
-
-    // movimento
-    if (posicaoX < canvas.width - 40) {
-
-        posicaoX += (velocidadeX * 3) / 60;
-
-    } else {
-
-        posicaoX = canvas.width - 40;
-
-        velocidadeX = velocidadeBase;
-
-        terminou = true;
-    }
-
-    // tempo
-    if (!terminou) {
-
-        tempoDecorrido =
-            (performance.now() - tempoInicial) / 1000;
-    }
-
-    // guarda histórico
-    if (!terminou) {
-
-    historicoTempo.push(
-        tempoDecorrido.toFixed(2)
-    );
-
-    historicoVelocidade.push(
-        velocidadeX.toFixed(2)
-    );
-
-    // atualiza gráfico
-    criarGrafico();
+function atualizarGrafico() {
+    if (!grafico) { criarGrafico(); return; }
+    grafico.data.labels            = historicoTempo;
+    grafico.data.datasets[0].data  = historicoVelocidade;
+    grafico.update("none");
 }
 
-    // atualiza gráfico em tempo real
-    criarGrafico();
+// --- Loop principal ---
+function atualizarSimulacao(timestamp) {
 
-    // limpa tela
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
+    if (ultimoTimestamp === null) ultimoTimestamp = timestamp;
+    const dt = Math.min((timestamp - ultimoTimestamp) / 1000, 0.05);
+    ultimoTimestamp = timestamp;
+
+    if (!terminou) {
+
+        // CORREÇÃO: única declaração de emObstaculo
+        const emObstaculo = listaObstaculos.some(obs => verificarColisao(obs));
+
+        // Captura a velocidade só no momento em que entra no obstáculo
+        if (emObstaculo && !emObstaculoAnterior) {
+            velocidadeAoEntrar = velocidadeMS;
+        }
+        emObstaculoAnterior = emObstaculo;
+
+        // Velocidade alvo: 63% da velocidade ao entrar se estiver no obstáculo
+        velocidadeAlvoMS = emObstaculo ? velocidadeAoEntrar * 0.63 : velocidadeMaxMS;
+
+        // MRUV: Δv = a · dt
+        if (velocidadeMS < velocidadeAlvoMS) {
+            velocidadeMS = Math.min(velocidadeMS + aceleracaoMS2 * dt, velocidadeAlvoMS);
+        } else if (velocidadeMS > velocidadeAlvoMS) {
+            velocidadeMS = Math.max(velocidadeMS - aceleracaoMS2 * dt, velocidadeAlvoMS);
+        }
+
+        // MRUV: Δx = v · dt
+        posicaoMetros += velocidadeMS * dt;
+
+        // Guarda velocidade atual para exibir depois de terminar
+        velocidadeFinal = velocidadeMS;
+
+        // CORREÇÃO: marca obstáculos já ultrapassados
+        for (const obs of listaObstaculos) {
+            if (!obs.passado && verificarPassou(obs)) obs.passado = true;
+        }
+
+        // Histórico a cada ~0,1 s
+        tempoDecorrido = (performance.now() - tempoInicial) / 1000;
+        const ultimoT  = historicoTempo[historicoTempo.length - 1];
+        if (!ultimoT || tempoDecorrido - parseFloat(ultimoT) >= 0.1) {
+            historicoTempo.push(tempoDecorrido.toFixed(2));
+            historicoVelocidade.push((velocidadeMS * 3.6).toFixed(2));
+            atualizarGrafico();
+        }
+
+        // Chegou ao fim
+        if (posicaoMetros >= metrosTotais) {
+            posicaoMetros = metrosTotais;
+            terminou      = true;
+        }
+    }
+
+    // --- Renderização ---
+
+    // Converte metros → pixels e impede o carro de sair da tela
+    const posicaoX = Math.min(
+        posicaoMetros * pixelsPorMetro,
+        canvas.width - 73   // 73 = largura do sprite do carro
     );
 
-    // fundo
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Fundo
     if (fundoCarregado) {
-
-        ctx.drawImage(
-            imgFundo,
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
-
+        ctx.drawImage(imgFundo, 0, 0, canvas.width, canvas.height);
     } else {
-
         ctx.fillStyle = "black";
-
-        ctx.fillRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // obstáculos
-    ctx.fillStyle = "blue";
-
-    for (let obstaculo of listaObstaculos) {
-
-        ctx.fillRect(
-
-            obstaculo.x,
-            obstaculo.y,
-
-            obstaculo.largura,
-            obstaculo.altura
-        );
+    // Obstáculos — imagem diferente dependendo se foi passado ou não
+    for (const obs of listaObstaculos) {
+        if (obs.passado && obsPassadaCarregada) {
+            ctx.drawImage(imgObstaculoPassado, obs.x, obs.y, obs.largura, obs.altura);
+        } else if (!obs.passado && obsCarregada) {
+            ctx.drawImage(imgObstaculo, obs.x, obs.y, obs.largura, obs.altura);
+        } else {
+            // Fallback enquanto as imagens carregam
+            ctx.fillStyle = obs.passado ? "gray" : "blue";
+            ctx.fillRect(obs.x, obs.y, obs.largura, obs.altura);
+        }
     }
-    
-    // carro
+
+    // Carro — continua visível após terminar
     if (imagemCarregada) {
-
-        ctx.drawImage(
-            imgCarro,
-            posicaoX,
-            92,
-            73,
-            80
-        );
-
+        ctx.drawImage(imgCarro, posicaoX, 100, 73, 80);
     } else {
-
         ctx.fillStyle = "red";
-
-        ctx.fillRect(
-            posicaoX,
-            100,
-            40,
-            40
-        );
+        ctx.fillRect(posicaoX, 100, 40, 40);
     }
-    // fundo
-    ctx.fillStyle = "black";
-    
-    ctx.fillRect(
-        10,
-        10,
-        180,
-        83, 
-    );
+
+    // HUD — fundo
+    ctx.fillStyle   = "black";
+    ctx.fillRect(10, 10, 230, 100);
     ctx.strokeStyle = "white";
+    ctx.lineWidth   = 3;
+    ctx.strokeRect(10, 10, 230, 100);
 
-    ctx.lineWidth = 3;
+    // HUD — texto
+    // Após terminar, mostra a velocidade final (não zero)
+    const velExibida = terminou ? velocidadeFinal : velocidadeMS;
 
-    ctx.strokeRect(
-        10,
-        10,
-        180,
-        83
-    );
-    // textos
     ctx.fillStyle = "white";
+    ctx.font      = "16px sans-serif";
+    ctx.fillText(`Posição:    ${posicaoMetros.toFixed(2)} m`,           20, 35);
+    ctx.fillText(`Velocidade: ${(velExibida * 3.6).toFixed(2)} km/h`,   20, 60);
+    ctx.fillText(`Tempo:      ${tempoDecorrido.toFixed(2)} s`,           20, 85);
 
-    ctx.font = "16px sans-serif";
+    if (terminou) {
+        ctx.fillStyle = "black";
+        ctx.font      = "bold 18px sans-serif";
+        ctx.fillText("✓ Chegou!", 330, 30);
+    }
 
-    ctx.fillText(
-
-        `Posição: ${posicaoMetros.toFixed(2)} m`,
-
-        20,
-        30
-    );
-
-    ctx.fillText(
-
-        `Velocidade: ${velocidadeX.toFixed(2)} km/h`,
-
-        20,
-        55
-    );
-
-    ctx.fillText(
-
-        `Tempo: ${tempoDecorrido.toFixed(2)} s`,
-
-        20,
-        80
-    );
-
-    requestAnimationFrame(
-        atualizarSimulacao
-    );
+    // CORREÇÃO: para o loop quando terminar, evitando processamento desnecessário
+    if (!terminou) {
+        requestAnimationFrame(atualizarSimulacao);
+    }
 }
 
-// botão
+// --- Reiniciar ---
 function reiniciar() {
+    const vKmh      = Number(inputVelocidade.value) || 60;
+    const aMS2      = Number(inputAceleracao.value) || 1;
+    const qtdObs    = Number(inputObstaculos.value) || 0;
 
-    velocidadeBase = Number(
-        inputVelocidade.value
-    );
+    velocidadeMaxMS  = vKmh / 3.6;
+    aceleracaoMS2    = aMS2;
+    velocidadeMS     = 0;
+    velocidadeFinal  = 0;
+    velocidadeAlvoMS = velocidadeMaxMS;
+    posicaoMetros    = 0;
+    terminou         = false;
 
-    aceleracao = velocidadeBase / 100;
+    tempoInicial    = performance.now();
+    tempoDecorrido  = 0;
+    ultimoTimestamp = null;
 
-    velocidadeAlvo = velocidadeBase;
-
-    velocidadeX = 0;
-
-    let qtdObstaculos = Number(
-        inputObstaculos.value
-    );
-
-    criarObstaculos(qtdObstaculos);
-
-    posicaoX = 10;
-
-    terminou = false;
-
-    tempoInicial = performance.now();
-
-    tempoDecorrido = 0;
-
-    historicoTempo = [];
+    historicoTempo      = [];
     historicoVelocidade = [];
+
+    criarObstaculos(qtdObs);
+    criarGrafico();
+
+    velocidadeAoEntrar  = 0;
+    emObstaculoAnterior = false;
+    requestAnimationFrame(atualizarSimulacao);
 }
 
-// inicia
+// --- Inicia ---
 reiniciar();
-
-atualizarSimulacao();
+requestAnimationFrame(atualizarSimulacao);

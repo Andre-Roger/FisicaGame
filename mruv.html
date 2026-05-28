@@ -1,65 +1,40 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
     <title>Simulador Prático de MRUV</title>
-
     <link rel="stylesheet" href="mruv.css">
-
+    <link rel="icon" href="IMG/iconMcquenn.jpg">
 </head>
-
 <body>
-
     <h2>Simulador Prático de MRUV</h2>
-
-    <p>
-        O bloco começa parado e vai ganhando velocidade
-        devido à aceleração constante.
-    </p>
+    <p>O bloco começa parado e vai ganhando velocidade devido à aceleração constante.</p>
 
     <canvas id="cenario" width="800" height="200"></canvas>
 
     <div>
+        <label for="velocidade">Velocidade máxima (km/h):</label>
+        <input type="number" id="velocidade" value="60" step="1" min="1">
 
-        <label for="aceleracao">
-            Aceleração:
-        </label>
+        <label for="aceleracao">Aceleração (m/s²):</label>
+        
+       <input type="number" id="aceleracao" value="1" step="1" min="1">
 
-        <input
-            type="number"
-            id="aceleracao"
-            value="1"
-            step="0.1"
-        >
-
-        <label>
-            Quantidade de obstáculos:
-        </label>
-
+        <label for="obstaculos">Obstáculos:</label>
         <select id="obstaculos">
-
             <option value="0">0</option>
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
             <option value="4">4</option>
             <option value="5">5</option>
-
         </select>
 
-
-        <button onclick="reiniciar()">
-            Reiniciar Simulação
-        </button>
-
+        <button onclick="reiniciar()">Reiniciar Simulação</button>
     </div>
 
     <canvas id="grafico" width="800" height="300"></canvas>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../FisicaGame/mruv.js"></script>
-     
+    <script src="mruv.js"></script>
 </body>
-
 </html>
