@@ -1,0 +1,8 @@
+1°F
+André Roger Nogueiro Dias
+Eduardo Ventura da Cruz
+
+Usamos HTML, Java Script, e um pouco de CSS.
+
+Não tem guia de instruções. O próprio código é autoexplicativo 
+Não temos conhecimento de java script Então pesquisamos como fazer certas partes, como a de animações e funções (pedimos ajuda de IA) .
