@@ -115,7 +115,11 @@ function atualizarGrafico() {
 }
 
 // --- Loop principal ---
-function atualizarSimulacao(timestamp) {
+function atualizarSimulacao(timestamp) { 
+        velocidade = Number(inputVelocidade.value)
+        if (velocidade < 0) {
+            velocidadeMaxMS = 0
+        }
 
     if (ultimoTimestamp === null) ultimoTimestamp = timestamp;
     const dt = Math.min((timestamp - ultimoTimestamp) / 1000, 0.05);
@@ -222,7 +226,11 @@ function atualizarSimulacao(timestamp) {
     ctx.fillStyle = "white";
     ctx.font      = "16px sans-serif";
     ctx.fillText(`Posição:    ${posicaoMetros.toFixed(2)} m`,           20, 35);
-    ctx.fillText(`Velocidade: ${(velExibida * 3.6).toFixed(2)} km/h`,   20, 60);
+    ctx.fillText(
+        `Velocidade: ${(Math.abs(velExibida) * 3.6).toFixed(2)} km/h`,
+        20,
+        60
+    );
     ctx.fillText(`Tempo:      ${tempoDecorrido.toFixed(2)} s`,           20, 85);
 
     if (terminou) {
@@ -240,11 +248,11 @@ function atualizarSimulacao(timestamp) {
 // --- Reiniciar ---
 function reiniciar() {
     const vKmh      = Number(inputVelocidade.value) || 60;
-    const aMS2      = Number(inputAceleracao.value) || 1;
+    const aMS2      = Number(inputAceleracao.value) || 0;
     const qtdObs    = Number(inputObstaculos.value) || 0;
 
     velocidadeMaxMS  = vKmh / 3.6;
-    aceleracaoMS2    = aMS2;
+    aceleracaoMS2 = Math.max(0, aMS2);
     velocidadeMS     = 0;
     velocidadeFinal  = 0;
     velocidadeAlvoMS = velocidadeMaxMS;
